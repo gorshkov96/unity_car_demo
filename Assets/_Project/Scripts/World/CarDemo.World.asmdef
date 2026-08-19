@@ -1,0 +1,16 @@
+{
+    "name": "CarDemo.World",
+    "rootNamespace": "CarDemo.World",
+    "references": [
+        "CarDemo.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

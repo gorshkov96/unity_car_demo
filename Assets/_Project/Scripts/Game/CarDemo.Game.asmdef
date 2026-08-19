@@ -1,0 +1,19 @@
+{
+    "name": "CarDemo.Game",
+    "rootNamespace": "CarDemo.Game",
+    "references": [
+        "CarDemo.Core",
+        "CarDemo.Vehicle",
+        "CarDemo.World",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
