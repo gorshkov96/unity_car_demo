@@ -68,7 +68,7 @@ namespace CarDemo.UI
             panel.Add(_wheelsLabel);
 
             var hint = MakeLabel(new Color(0.55f, 0.59f, 0.66f), 12);
-            hint.text = "WASD — руль и газ · Space — ручник · R — на старт";
+            hint.text = "WASD — газ и руль · Space — ручник · R — на старт · Esc — выбор карты";
             panel.Add(hint);
 
             root.Add(panel);

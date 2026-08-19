@@ -30,6 +30,9 @@ namespace CarDemo.World
             _rigidbody = GetComponent<Rigidbody>();
             _rigidbody.isKinematic = true;
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            // Kinematic bodies only support speculative continuous detection, and without it
+            // a car arriving at 45 m/s can be missed entirely between physics steps.
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             _origin = transform.position;
             _time = _phase * _period;
         }

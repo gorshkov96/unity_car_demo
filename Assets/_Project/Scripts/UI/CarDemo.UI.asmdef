@@ -4,7 +4,8 @@
     "references": [
         "CarDemo.Core",
         "CarDemo.Vehicle",
-        "CarDemo.Diagnostics"
+        "CarDemo.Diagnostics",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

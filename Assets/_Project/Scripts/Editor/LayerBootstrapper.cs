@@ -15,6 +15,7 @@ namespace CarDemo.EditorTools
             GameLayers.GroundName,
             GameLayers.VehicleName,
             GameLayers.PropName,
+            GameLayers.CameraObstacleName,
         };
 
         [MenuItem("CarDemo/Apply Layers")]

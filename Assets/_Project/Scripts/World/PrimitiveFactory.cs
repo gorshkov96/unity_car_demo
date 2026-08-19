@@ -13,6 +13,7 @@ namespace CarDemo.World
         public static GameObject Box(string name, Transform parent, Vector3 position, Vector3 size, Quaternion rotation, Material material)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            FlatShadedMeshes.Apply(go, PrimitiveType.Cube);
             go.name = name;
             go.transform.SetParent(parent, worldPositionStays: false);
             go.transform.SetLocalPositionAndRotation(position, rotation);
@@ -24,6 +25,7 @@ namespace CarDemo.World
         public static GameObject Cylinder(string name, Transform parent, Vector3 position, Vector3 scale, Quaternion rotation, Material material)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            FlatShadedMeshes.Apply(go, PrimitiveType.Cylinder);
             go.name = name;
             go.transform.SetParent(parent, worldPositionStays: false);
             go.transform.SetLocalPositionAndRotation(position, rotation);

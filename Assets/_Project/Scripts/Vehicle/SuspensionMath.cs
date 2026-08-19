@@ -9,6 +9,22 @@ namespace CarDemo.Vehicle
     public static class SuspensionMath
     {
         /// <summary>
+        /// Normalized compression in [0, 1] from a suspension spherecast.
+        ///
+        /// A spherecast reports how far the wheel's centre travelled, so the maths is simply
+        /// the fraction of the travel used up. This is the form the controller uses: a single
+        /// ray down the middle of a wheel drops into every seam between generated pieces,
+        /// while a sphere the size of the wheel rolls over them.
+        /// </summary>
+        /// <param name="hitDistance">Distance the sphere travelled before touching down.</param>
+        /// <param name="restLength">Suspension travel at rest.</param>
+        public static float CompressionFromSphere(float hitDistance, float restLength)
+        {
+            if (restLength <= 0f) return 0f;
+            return Math.Clamp(1f - hitDistance / restLength, 0f, 1f);
+        }
+
+        /// <summary>
         /// Normalized compression in [0, 1] from a suspension raycast.
         /// 0 = wheel hanging at full rest length, 1 = suspension fully compressed.
         /// </summary>

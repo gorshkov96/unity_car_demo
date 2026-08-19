@@ -13,13 +13,11 @@ namespace CarDemo.Vehicle
         [SerializeField] private Transform[] _wheelTransforms = new Transform[4];
 
         private CarController _controller;
-        private Transform _carTransform;
         private float[] _rollAngles;
 
         private void Awake()
         {
             _controller = GetComponent<CarController>();
-            _carTransform = transform;
             _rollAngles = new float[_wheelTransforms.Length];
         }
 
@@ -29,7 +27,6 @@ namespace CarDemo.Vehicle
             if (wheels.IsEmpty) return;
 
             float deltaTime = Time.deltaTime;
-            Quaternion carRotation = _carTransform.rotation;
             int count = Mathf.Min(wheels.Length, _wheelTransforms.Length);
 
             for (int i = 0; i < count; i++)
@@ -40,9 +37,11 @@ namespace CarDemo.Vehicle
                 WheelState state = wheels[i];
                 _rollAngles[i] = WheelPose.Advance(_rollAngles[i], state.SpinSpeed, deltaTime);
 
-                wheel.SetPositionAndRotation(
-                    state.WorldPosition,
-                    WheelPose.Compose(carRotation, state.SteerAngle, _rollAngles[i]));
+                // Local placement: the wheels are children of the car, so they inherit the
+                // interpolated body transform instead of chasing it a step behind.
+                wheel.SetLocalPositionAndRotation(
+                    state.LocalPosition,
+                    WheelPose.ComposeLocal(state.SteerAngle, _rollAngles[i]));
             }
         }
 

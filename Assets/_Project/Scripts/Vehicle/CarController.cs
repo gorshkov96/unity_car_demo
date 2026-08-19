@@ -25,6 +25,7 @@ namespace CarDemo.Vehicle
         private WheelState[] _wheels;
         private float _steerAngle;
         private int _drivenWheelCount;
+        private float _airborneTime;
         private float _wheelMassShare;
 
         /// <summary>
@@ -85,6 +86,16 @@ namespace CarDemo.Vehicle
             _rigidbody.centerOfMass = _config.CenterOfMassOffset;
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            _rigidbody.maxLinearVelocity = _config.MaxLinearVelocity;
+            // Higher than the project default, on this body only: a deep interpenetration at
+            // 170 km/h resolves by ejecting the car, sometimes straight through the floor.
+            _rigidbody.solverIterations = _config.SolverIterations;
+            _rigidbody.solverVelocityIterations = _config.SolverIterations;
+
+            // Set on the body as well as globally: a Rigidbody keeps whatever value it was
+            // created with, so relying on the project default alone leaves the car able to be
+            // fired out of an overlap at 10 m/s — which is how it ends up under the track.
+            _rigidbody.maxDepenetrationVelocity = _config.MaxDepenetrationVelocity;
 
             _layout = _config.BuildWheelLayout();
             _wheels = new WheelState[_layout.Length];
@@ -154,6 +165,42 @@ namespace CarDemo.Vehicle
                 float speed = _rigidbody.linearVelocity.magnitude;
                 _rigidbody.AddForce(-transform.up * (speed * _config.Downforce), ForceMode.Force);
             }
+            else
+            {
+                _airborneTime += deltaTime;
+                StabiliseInAir();
+            }
+
+            if (IsGrounded) _airborneTime = 0f;
+        }
+
+        /// <summary>
+        /// Levels the car towards the horizon while airborne and damps its tumbling.
+        ///
+        /// Openly an arcade cheat — real cars have no such control in the air. Without it a
+        /// jump is a coin flip that usually lands on the roof, which is not a demo anyone
+        /// wants to play. Only the roll and pitch are corrected; yaw is left alone so the
+        /// player keeps their heading.
+        /// </summary>
+        private void StabiliseInAir()
+        {
+            // Hold off at first. A banked ramp exists to spin the car, and levelling it the
+            // instant the wheels leave the ground erases the trick before anyone sees it.
+            // After the grace period the correction fades in, so the landing is still on wheels.
+            float authority = Mathf.Clamp01((_airborneTime - _config.AirControlDelay) / 0.5f);
+            if (authority <= 0f) return;
+
+            Vector3 up = transform.up;
+            // Torque that rotates the car's up axis back towards world up.
+            Vector3 levelling = Vector3.Cross(up, Vector3.up);
+            _rigidbody.AddTorque(
+                levelling * (_config.AirLevelTorque * _rigidbody.mass * 0.01f * authority),
+                ForceMode.Force);
+
+            // Damp the tumble so the correction settles instead of oscillating.
+            _rigidbody.AddTorque(
+                -_rigidbody.angularVelocity * (_config.AirAngularDamping * _rigidbody.mass * 0.01f * authority),
+                ForceMode.Force);
         }
 
         private void UpdateSteerAngle(float steerInput)
@@ -176,8 +223,14 @@ namespace CarDemo.Vehicle
             Vector3 wheelForward = steerRotation * transform.forward;
             Vector3 wheelRight = steerRotation * transform.right;
 
-            float rayLength = _config.SuspensionRestLength + _config.WheelRadius;
-            bool grounded = Physics.Raycast(anchor, -transform.up, out RaycastHit hit, rayLength, _groundMask, QueryTriggerInteraction.Ignore);
+            // SphereCast, not Raycast: a single ray down the centre of a wheel falls into
+            // every seam between generated pieces of track and reports "no ground" for a step,
+            // which reads as the wheel dropping through the world. A sphere the width of the
+            // wheel rolls across those seams the way a real tyre does.
+            float castRadius = _config.WheelRadius * 0.9f;
+            bool grounded = Physics.SphereCast(
+                anchor, castRadius, -transform.up, out RaycastHit hit,
+                _config.SuspensionRestLength, _groundMask, QueryTriggerInteraction.Ignore);
 
             if (!grounded)
             {
@@ -185,7 +238,7 @@ namespace CarDemo.Vehicle
                 // the way a free wheel loses speed to bearing friction rather than stopping dead.
                 float freeSpin = _wheels[index].SpinSpeed * Mathf.Exp(-_config.AirborneSpinDecay * deltaTime);
                 _wheels[index] = new WheelState(
-                    anchor - transform.up * _config.SuspensionRestLength,
+                    WheelLocalPosition(layout, compression: 0f),
                     layout.Steerable ? _steerAngle : 0f,
                     grounded: false,
                     compression: 0f,
@@ -200,7 +253,7 @@ namespace CarDemo.Vehicle
             Vector3 pointVelocity = _rigidbody.GetPointVelocity(contactPoint);
 
             // --- Suspension -------------------------------------------------
-            float compression = SuspensionMath.Compression(hit.distance, _config.WheelRadius, _config.SuspensionRestLength);
+            float compression = SuspensionMath.CompressionFromSphere(hit.distance, _config.SuspensionRestLength);
             float verticalVelocity = Vector3.Dot(pointVelocity, transform.up);
             float suspensionForce = SuspensionMath.Force(compression, _config.SpringStrength, verticalVelocity, _config.DamperStrength);
             _rigidbody.AddForceAtPosition(transform.up * suspensionForce, anchor, ForceMode.Force);
@@ -213,12 +266,21 @@ namespace CarDemo.Vehicle
             }
 
             float lateralSpeed = Vector3.Dot(pointVelocity, wheelRight);
-            // Force needed to remove `grip` fraction of the slip this step,
-            // divided across wheels, then capped so grip stays physical.
+
+            // Force needed to remove `grip` fraction of the sideways slip this step.
             float desiredAcceleration = -lateralSpeed * grip / deltaTime;
             desiredAcceleration = Mathf.Clamp(desiredAcceleration, -_config.MaxGripAcceleration, _config.MaxGripAcceleration);
             float wheelMassShare = _wheelMassShare;
-            _rigidbody.AddForceAtPosition(wheelRight * (desiredAcceleration * wheelMassShare), contactPoint, ForceMode.Force);
+            float lateralForce = desiredAcceleration * wheelMassShare;
+
+            // Friction circle, simplified: a tyre can only push sideways as hard as the weight
+            // on it allows (F <= mu * N), where N is what the spring is currently carrying.
+            // Without this cap the cornering force is unbounded, and cancelling sideways slip
+            // quietly pumps energy into the car — it reads as the car speeding up mid-corner.
+            float maxLateralForce = suspensionForce * _config.TireFriction;
+            lateralForce = Mathf.Clamp(lateralForce, -maxLateralForce, maxLateralForce);
+
+            _rigidbody.AddForceAtPosition(wheelRight * lateralForce, contactPoint, ForceMode.Force);
 
             // --- Drive and brake --------------------------------------------
             float forwardSpeed = Vector3.Dot(pointVelocity, wheelForward);
@@ -283,20 +345,28 @@ namespace CarDemo.Vehicle
                 spinSpeed = rollingSpin;
             }
 
-            // Position is derived from the clamped compression, not from the raw contact point:
+            // Position comes from the clamped compression, not from the raw contact point:
             // when something shoves the car into the ground the raw point would put the wheel
             // inside the body, and when the ray overshoots it would drop the wheel through the
             // floor. Suspension travel is the physical limit, so the visual respects it.
-            Vector3 wheelPosition = anchor - transform.up * (_config.SuspensionRestLength * (1f - compression));
-
             _wheels[index] = new WheelState(
-                wheelPosition,
+                WheelLocalPosition(layout, compression),
                 layout.Steerable ? _steerAngle : 0f,
                 grounded: true,
                 compression: compression,
                 spinSpeed: spinSpeed,
                 slip: slip);
             return true;
+        }
+
+        /// <summary>
+        /// Wheel position in car-local space for a given compression.
+        /// At zero compression the wheel hangs at full droop; at full compression it sits at
+        /// the suspension anchor.
+        /// </summary>
+        private Vector3 WheelLocalPosition(WheelLayout layout, float compression)
+        {
+            return layout.LocalPosition + Vector3.up * (_config.SuspensionRestLength * compression);
         }
 
         private void OnDrawGizmosSelected()
@@ -325,7 +395,15 @@ namespace CarDemo.Vehicle
     /// </summary>
     public readonly struct WheelState
     {
-        public readonly Vector3 WorldPosition;
+        /// <summary>
+        /// Wheel position in the car's local space, not world space.
+        ///
+        /// This matters: the Rigidbody is interpolated, so between physics steps the rendered
+        /// body sits somewhere the physics transform never was. A world position captured in
+        /// FixedUpdate would therefore drift against the interpolated body every frame, and the
+        /// wheels visibly shake. A local offset rides along with whatever the body is doing.
+        /// </summary>
+        public readonly Vector3 LocalPosition;
 
         /// <summary>Steering angle in degrees around the car's up axis. Positive is right.</summary>
         public readonly float SteerAngle;
@@ -343,9 +421,9 @@ namespace CarDemo.Vehicle
         /// </summary>
         public readonly float Slip;
 
-        public WheelState(Vector3 worldPosition, float steerAngle, bool grounded, float compression, float spinSpeed, float slip = 0f)
+        public WheelState(Vector3 localPosition, float steerAngle, bool grounded, float compression, float spinSpeed, float slip = 0f)
         {
-            WorldPosition = worldPosition;
+            LocalPosition = localPosition;
             SteerAngle = steerAngle;
             Grounded = grounded;
             Compression = compression;

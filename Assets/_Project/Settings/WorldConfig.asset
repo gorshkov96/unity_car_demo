@@ -27,3 +27,5 @@ MonoBehaviour:
   _platformCount: 5
   _bumperCount: 24
   _bumperMass: 40
+  _spawnAngleDegrees: 0
+  _spawnClearance: 14

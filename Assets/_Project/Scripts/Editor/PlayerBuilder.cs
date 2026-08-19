@@ -14,6 +14,7 @@ namespace CarDemo.EditorTools
     {
         private const string ScenePath = "Assets/_Project/Scenes/Demo.unity";
         private const string OutputPath = "Builds/CarDemo.app";
+        private const string DescentScenePath = "Assets/_Project/Scenes/Descent.unity";
 
         /// <summary>
         /// Development build of the benchmark scene. Development mode is required for the
@@ -23,17 +24,27 @@ namespace CarDemo.EditorTools
         [MenuItem("CarDemo/Build Benchmark Player")]
         public static void BuildBenchmark()
         {
-            Build("Assets/_Project/Scenes/Benchmark.unity", "Builds/CarDemoBenchmark.app",
+            Build(new[] { "Assets/_Project/Scenes/Benchmark.unity" }, "Builds/CarDemoBenchmark.app",
                 BuildOptions.Development | BuildOptions.EnableDeepProfilingSupport);
         }
 
         [MenuItem("CarDemo/Build macOS Player")]
         public static void BuildMac()
         {
-            Build(ScenePath, OutputPath, BuildOptions.None);
+            // Both maps go in: the runtime switcher cycles build indices, so shipping only
+            // one scene would leave the Tab key doing nothing.
+            Build(new[] { ScenePath, DescentScenePath }, OutputPath, BuildOptions.None);
         }
 
-        private static void Build(string scenePath, string outputPath, BuildOptions buildOptions)
+        /// <summary>Development build of the descent, driven by the auto driver.</summary>
+        [MenuItem("CarDemo/Build Descent Benchmark Player")]
+        public static void BuildDescentBenchmark()
+        {
+            Build(new[] { "Assets/_Project/Scenes/DescentBenchmark.unity" }, "Builds/CarDemoDescent.app",
+                BuildOptions.Development);
+        }
+
+        private static void Build(string[] scenePaths, string outputPath, BuildOptions buildOptions)
         {
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
             PlayerSettings.productName = "CarDemo";
@@ -45,7 +56,7 @@ namespace CarDemo.EditorTools
 
             var options = new BuildPlayerOptions
             {
-                scenes = new[] { scenePath },
+                scenes = scenePaths,
                 locationPathName = outputPath,
                 target = BuildTarget.StandaloneOSX,
                 options = buildOptions,

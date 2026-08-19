@@ -30,6 +30,7 @@ namespace CarDemo.EditorTools
         private const string ScenesFolder = ProjectRoot + "/Scenes";
         private const string ScenePath = ScenesFolder + "/Demo.unity";
         private const string BenchmarkScenePath = ScenesFolder + "/Benchmark.unity";
+        private const string DescentScenePath = ScenesFolder + "/Descent.unity";
         private const string PanelSettingsPath = SettingsFolder + "/CarDemoPanelSettings.asset";
         private const string ThemePath = ProjectRoot + "/UI/CarDemoTheme.tss";
         private const string CarConfigPath = SettingsFolder + "/CarConfig.asset";
@@ -46,18 +47,25 @@ namespace CarDemo.EditorTools
             // silently building nothing.
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            CarConfig carConfig = LoadOrCreate<CarConfig>(CarConfigPath);
-            WorldConfig worldConfig = LoadOrCreate<WorldConfig>(WorldConfigPath);
+            CarConfig carConfig = CreateConfig<CarConfig>(CarConfigPath);
+            WorldConfig worldConfig = CreateConfig<WorldConfig>(WorldConfigPath);
 
             Material ground = LoadOrCreateMaterial("Ground", new Color(0.24f, 0.26f, 0.28f), smoothness: 0.15f);
             Material road = LoadOrCreateMaterial("Road", new Color(0.13f, 0.14f, 0.16f), smoothness: 0.35f);
             Material building = LoadOrCreateMaterial("Building", new Color(0.62f, 0.63f, 0.66f), smoothness: 0.2f);
             Material accent = LoadOrCreateMaterial("Accent", new Color(0.85f, 0.42f, 0.16f), smoothness: 0.3f);
             Material moving = LoadOrCreateMaterial("Moving", new Color(0.25f, 0.65f, 0.85f), smoothness: 0.5f);
-            Material carBody = LoadOrCreateMaterial("CarBody", new Color(0.75f, 0.13f, 0.16f), smoothness: 0.6f);
-            Material wheel = LoadOrCreateMaterial("Wheel", new Color(0.09f, 0.09f, 0.1f), smoothness: 0.25f);
+            Material carBody = LoadOrCreateMaterial("CarBody", new Color(0.72f, 0.11f, 0.14f), smoothness: 0.85f);
+            Material wheel = LoadOrCreateMaterial("Wheel", new Color(0.07f, 0.07f, 0.08f), smoothness: 0.2f);
+            Material trim = LoadOrCreateMaterial("Trim", new Color(0.14f, 0.15f, 0.17f), smoothness: 0.55f);
+            Material glass = LoadOrCreateMaterial("Glass", new Color(0.07f, 0.11f, 0.16f), smoothness: 0.95f);
+            Material rim = LoadOrCreateMaterial("Rim", new Color(0.68f, 0.7f, 0.74f), smoothness: 0.8f, metallic: 0.9f);
+            Material headlight = LoadOrCreateMaterial("Headlight", new Color(0.92f, 0.94f, 0.85f), smoothness: 0.9f,
+                emission: new Color(1.6f, 1.55f, 1.25f));
+            Material taillight = LoadOrCreateMaterial("Taillight", new Color(0.6f, 0.05f, 0.05f), smoothness: 0.9f,
+                emission: new Color(1.4f, 0.12f, 0.1f));
 
-            AssignMaterials(carConfig, carBody, wheel);
+            AssignMaterials(carConfig, carBody, wheel, trim, glass, headlight, taillight, rim);
 
             if (worldConfig == null || carConfig == null)
             {
@@ -146,17 +154,29 @@ namespace CarDemo.EditorTools
             }
         }
 
-        private static T LoadOrCreate<T>(string path) where T : ScriptableObject
+        /// <summary>
+        /// Creates a config asset from the code defaults, replacing any existing one.
+        ///
+        /// This project treats the code as the source of truth: an asset created weeks ago
+        /// keeps its serialised values forever, so editing a default in C# has no effect on
+        /// the asset the game actually loads. That silently split the tuning in two — the
+        /// numbers being read in review were not the numbers being played.
+        /// </summary>
+        private static T CreateConfig<T>(string path) where T : ScriptableObject
         {
-            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
-            if (asset != null) return asset;
+            var asset = ScriptableObject.CreateInstance<T>();
 
-            asset = ScriptableObject.CreateInstance<T>();
+            if (AssetDatabase.LoadAssetAtPath<T>(path) != null)
+            {
+                AssetDatabase.DeleteAsset(path);
+            }
+
             AssetDatabase.CreateAsset(asset, path);
             return asset;
         }
 
-        private static Material LoadOrCreateMaterial(string name, Color color, float smoothness)
+        private static Material LoadOrCreateMaterial(
+            string name, Color color, float smoothness, float metallic = 0f, Color? emission = null)
         {
             string path = $"{MaterialsFolder}/{name}.mat";
             var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -172,18 +192,58 @@ namespace CarDemo.EditorTools
             var material = new Material(shader) { name = name };
             material.SetColor("_BaseColor", color);
             material.SetFloat("_Smoothness", smoothness);
+            material.SetFloat("_Metallic", metallic);
+
+            if (emission.HasValue)
+            {
+                // Emissive lights need both the keyword and the global illumination flag,
+                // otherwise the colour is set but nothing glows.
+                material.EnableKeyword("_EMISSION");
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                material.SetColor("_EmissionColor", emission.Value);
+            }
+
             AssetDatabase.CreateAsset(material, path);
             return material;
         }
 
-        private static void AssignMaterials(CarConfig config, Material body, Material wheel)
+        private static void AssignMaterials(
+            CarConfig config, Material body, Material wheel, Material trim, Material glass,
+            Material headlight, Material taillight, Material rim)
         {
-            config.SetEditorMaterials(body, wheel);
+            config.SetEditorMaterials(body, wheel, trim, glass, headlight, taillight, rim);
             EditorUtility.SetDirty(config);
+        }
+
+        /// <summary>Gradient sky, so the horizon is not a flat default backdrop.</summary>
+        private static void CreateSky()
+        {
+            const string path = MaterialsFolder + "/Sky.mat";
+            var sky = AssetDatabase.LoadAssetAtPath<Material>(path);
+
+            if (sky == null)
+            {
+                Shader shader = Shader.Find("Skybox/Procedural");
+                if (shader == null) return;
+
+                sky = new Material(shader) { name = "Sky" };
+                AssetDatabase.CreateAsset(sky, path);
+            }
+
+            sky.SetFloat("_SunSize", 0.06f);
+            sky.SetFloat("_AtmosphereThickness", 0.75f);
+            sky.SetColor("_SkyTint", new Color(0.44f, 0.66f, 0.86f));
+            sky.SetColor("_GroundColor", new Color(0.16f, 0.2f, 0.28f));
+            sky.SetFloat("_Exposure", 1.15f);
+            EditorUtility.SetDirty(sky);
+
+            RenderSettings.skybox = sky;
         }
 
         private static void CreateLighting()
         {
+            CreateSky();
+
             var sun = new GameObject("Directional Light");
             Light light = sun.AddComponent<Light>();
             light.type = LightType.Directional;
@@ -249,6 +309,9 @@ namespace CarDemo.EditorTools
             DriverHud hud = hudRoot.AddComponent<DriverHud>();
             hud.SetCar(car);
             hud.SetProbe(probe);
+
+            hudRoot.AddComponent<SceneSwitcher>();
+            hudRoot.AddComponent<MapMenu>();
         }
 
         private static PanelSettings LoadOrCreatePanelSettings()
@@ -294,9 +357,15 @@ namespace CarDemo.EditorTools
             cameraRoot.AddComponent<CinemachineBrain>();
 
             var rigRoot = new GameObject("Chase Camera");
+            // The camera follows a target that faces the direction of travel rather than the
+            // car's nose; on a slope or in a drift those are not the same thing.
+            var targetRoot = new GameObject("Camera Target");
+            ChaseCameraTarget target = targetRoot.AddComponent<ChaseCameraTarget>();
+            target.Configure(car, car.GetComponent<Rigidbody>());
+
             CinemachineCamera virtualCamera = rigRoot.AddComponent<CinemachineCamera>();
-            virtualCamera.Follow = car.transform;
-            virtualCamera.LookAt = car.transform;
+            virtualCamera.Follow = targetRoot.transform;
+            virtualCamera.LookAt = targetRoot.transform;
             virtualCamera.Lens.FieldOfView = 62f;
 
             CinemachineOrbitalFollow follow = rigRoot.AddComponent<CinemachineOrbitalFollow>();
@@ -306,6 +375,8 @@ namespace CarDemo.EditorTools
 
             // The horizontal axis recenters behind the car, so the camera swings back into
             // place after a spin instead of staring at the side of the car.
+            // Recentre behind the tracking target, which is the travel-aligned proxy rather
+            // than the car body — so a roll or a spin never drags the camera around with it.
             follow.RecenteringTarget = CinemachineOrbitalFollow.ReferenceFrames.TrackingTarget;
             follow.HorizontalAxis.Recentering.Enabled = true;
             follow.HorizontalAxis.Recentering.Wait = 0.4f;
@@ -322,6 +393,16 @@ namespace CarDemo.EditorTools
             composer.TargetOffset = new Vector3(0f, 1.2f, 0f);
             composer.Damping = new Vector2(0.5f, 0.5f);
 
+            // Decollider, not Deoccluder: the docs pick it for a car camera because the job
+            // here is pushing the camera out of walls and off the ground, not preserving line
+            // of sight at any cost. Without it the camera clips into a wall and renders it
+            // from the inside — which shows the player the back faces of the world.
+            CinemachineDecollider decollider = rigRoot.AddComponent<CinemachineDecollider>();
+            decollider.CameraRadius = 0.35f;
+            decollider.Decollision.Enabled = true;
+            decollider.Decollision.ObstacleLayers = GameLayers.CameraObstacleMask;
+            decollider.Decollision.SmoothingTime = 0.2f;
+
             ChaseCameraRig rig = rigRoot.AddComponent<ChaseCameraRig>();
             rig.SetCar(car);
 
@@ -329,10 +410,17 @@ namespace CarDemo.EditorTools
             cameraRoot.transform.LookAt(car.transform.position + Vector3.up);
         }
 
+        /// <summary>
+        /// Registers both maps, in a stable order: the runtime map switcher cycles through
+        /// build indices, so the order here is what the Tab key walks through.
+        /// </summary>
         private static void RegisterSceneInBuildSettings()
         {
-            var scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
-            EditorBuildSettings.scenes = scenes;
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(ScenePath, true),
+                new EditorBuildSettingsScene(DescentScenePath, true),
+            };
         }
     }
 }

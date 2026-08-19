@@ -18,6 +18,7 @@ namespace CarDemo.EditorTools
             ApplyGraphicsSettings();
             ApplyPlayerSettings();
             ApplyPhysicsSettings();
+            ApplyTimeSettings();
             ApplyQualitySettings();
 
             AssetDatabase.SaveAssets();
@@ -97,14 +98,68 @@ namespace CarDemo.EditorTools
             SerializedObject settings = LoadSettings("ProjectSettings/DynamicsManager.asset");
             if (settings == null) return;
 
-            // Sweep and Prune produces many false positives on flat worlds with many colliders,
-            // and our map is exactly that: a 240x240 m plate. 1 = Automatic Box Pruning.
-            SetInt(settings, "m_BroadphaseType", 1);
+            // Sweep and Prune (0), deliberately, against the general advice in
+            // docs/unity/06-performance.md to prefer Automatic Box Pruning on flat maps.
+            //
+            // That advice assumes a bounded map. Box Pruning only simulates inside
+            // m_WorldBounds — a fixed box, 250 m by default — and silently ignores everything
+            // outside it: no collisions at all, at any speed. The descent runs for kilometres
+            // and drops hundreds of metres, so most of it lives outside any box we could set.
+            // Sweep and Prune has no such limit.
+            SetInt(settings, "m_BroadphaseType", 0);
+
+            // Kept generous anyway, so the setting is harmless if the broadphase ever changes.
+            SerializedProperty bounds = settings.FindProperty("m_WorldBounds");
+            if (bounds != null)
+            {
+                SerializedProperty extent = bounds.FindPropertyRelative("m_Extent");
+                if (extent != null) extent.vector3Value = new Vector3(20000f, 20000f, 20000f);
+            }
 
             // Without this every OnCollisionStay allocates a Collision object.
             SetBool(settings, "m_ReuseCollisionCallbacks", true);
 
+            // How fast the engine is allowed to push two overlapping bodies apart. The default
+            // of 10 m/s is a catapult: a car that ends up inside a barrier at speed is fired
+            // out of it, often downwards through the track. Capping it turns an ejection into
+            // a firm nudge.
+            SetFloat(settings, "m_DefaultMaxDepenetrationVelocity", 2f);
+
+            // Contacts are generated slightly before surfaces touch, which gives the solver a
+            // step to react instead of discovering a deep overlap after the fact.
+            SetFloat(settings, "m_DefaultContactOffset", 0.02f);
+
+            // Velocity iterations at the default of 1 leave high-speed impacts unresolved.
+            SetInt(settings, "m_DefaultSolverVelocityIterations", 4);
+
             Commit(settings);
+        }
+
+        /// <summary>
+        /// Halves the physics step to 100 Hz.
+        ///
+        /// The step length is what decides how far an object jumps between collision checks:
+        /// at 170 km/h a 0.02 s step moves the car 0.94 m, which is more than the thickness of
+        /// most things it can hit. At 0.01 s it is 0.47 m. The cost is twice as many physics
+        /// steps, which this project can afford — the CPU sits at ~4 ms of a 16.6 ms budget.
+        /// </summary>
+        private static void ApplyTimeSettings()
+        {
+            // Set through the API, not the serialized field: in Unity 6 "Fixed Timestep" is
+            // stored as a rational number (count over rate), so writing a float into it does
+            // nothing. Time.fixedDeltaTime is the supported way in and persists to the asset.
+            Time.fixedDeltaTime = 0.01f;
+            Time.maximumDeltaTime = 0.1f;
+
+            SerializedObject settings = LoadSettings("ProjectSettings/TimeManager.asset");
+            if (settings != null)
+            {
+                SetFloat(settings, "Maximum Allowed Timestep", 0.1f);
+                Commit(settings);
+            }
+
+            Debug.Log($"[CarDemo] Physics step set to {Time.fixedDeltaTime * 1000f:0.#} ms "
+                      + $"({1f / Time.fixedDeltaTime:0} Hz)");
         }
 
         private static void ApplyQualitySettings()
@@ -149,6 +204,18 @@ namespace CarDemo.EditorTools
             settings.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(settings.targetObject);
             AssetDatabase.SaveAssetIfDirty(settings.targetObject);
+        }
+
+        private static void SetFloat(SerializedObject settings, string property, float value)
+        {
+            SerializedProperty found = settings.FindProperty(property);
+            if (found == null)
+            {
+                Debug.LogWarning($"[CarDemo] Setting '{property}' not found — skipped.");
+                return;
+            }
+
+            found.floatValue = value;
         }
 
         private static void SetInt(SerializedObject settings, string property, int value)

@@ -245,14 +245,15 @@ namespace CarDemo.World
             {
                 float angle = i / (float)Mathf.Max(1, _config.RampCount) * Mathf.PI * 2f + 0.4f;
                 float radius = _config.RoadRadius - _config.RoadWidth * 0.5f - 6f;
-                var position = new Vector3(Mathf.Cos(angle) * radius, 0.55f, Mathf.Sin(angle) * radius);
-                Quaternion rotation = Quaternion.Euler(-12f, -angle * Mathf.Rad2Deg + random.Range(-8f, 8f), 0f);
+                var position = new Vector3(Mathf.Cos(angle) * radius, -0.08f, Mathf.Sin(angle) * radius);
+                Quaternion rotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg + random.Range(-8f, 8f), 0f);
                 if (IsInsideSpawnZone(position)) continue;
 
-                PrimitiveFactory.Box(
-                    $"Ramp_{i}", root, position,
-                    new Vector3(7f, 0.4f, 9f),
-                    rotation, _accentMaterial);
+                // A wedge, not a tilted slab: a tilted slab buries its low edge and leaves
+                // its high edge standing proud as a step for the car to trip over.
+                GameObject ramp = WedgeMesh.Create(
+                    $"Ramp_{i}", root, position, new Vector3(7f, 1.4f, 9f), rotation, _accentMaterial);
+                ramp.layer = GameLayers.Ground;
             }
         }
 
@@ -281,6 +282,7 @@ namespace CarDemo.World
 
                 Rigidbody body = pivot.AddComponent<Rigidbody>();
                 body.isKinematic = true;
+                body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
                 SpinningProp spinner = pivot.AddComponent<SpinningProp>();
                 spinner.Configure(Vector3.up, random.Range(30f, 70f) * (i % 2 == 0 ? 1f : -1f));
             }
@@ -303,6 +305,7 @@ namespace CarDemo.World
 
                 Rigidbody body = platform.AddComponent<Rigidbody>();
                 body.isKinematic = true;
+                body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
                 MovingPlatform mover = platform.AddComponent<MovingPlatform>();
                 var travel = new Vector3(random.Range(-16f, 16f), 0f, random.Range(-16f, 16f));
                 mover.Configure(travel, random.Range(6f, 12f), random.Range(0f, 1f));
@@ -331,6 +334,7 @@ namespace CarDemo.World
                 Rigidbody body = box.AddComponent<Rigidbody>();
                 body.mass = _config.BumperMass;
                 body.interpolation = RigidbodyInterpolation.Interpolate;
+                body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
         }
 

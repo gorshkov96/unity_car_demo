@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a5ccba8383654f8db96b29c7b9f4d72, type: 3}
+  m_Name: DescentConfig
+  m_EditorClassIdentifier: CarDemo.World::CarDemo.World.DescentConfig
+  _seed: 8125
+  _slopeAngle: 16
+  _width: 95
+  _wallHeight: 10
+  _chunkLength: 220
+  _chunksAhead: 4
+  _chunksBehind: 2
+  _totalChunks: 0
+  _jumpsPerChunk: {x: 3, y: 5}
+  _jumpWidth: {x: 10, y: 20}
+  _jumpRise: 1.7
+  _blocksPerChunk: {x: 3, y: 6}
+  _pillarsPerChunk: {x: 2, y: 5}
+  _gatesPerChunk: {x: 0, y: 1}
+  _sweepersPerChunk: {x: 1, y: 2}
+  _spinnersPerChunk: {x: 1, y: 2}
+  _cratesPerChunk: {x: 6, y: 14}
+  _crateMass: 35
+  _startOffset: 20
+  _startClearance: 45

@@ -44,26 +44,7 @@ namespace CarDemo.Game
             // which keeps contacts predictable and cheap.
             var visuals = new GameObject("Visuals");
             visuals.transform.SetParent(root.transform, worldPositionStays: false);
-
-            GameObject shell = PrimitiveFactory.Box(
-                "Body", visuals.transform,
-                new Vector3(0f, config.ColliderCenter.y, 0f),
-                config.BodySize, Quaternion.identity, config.BodyMaterial);
-            PrimitiveFactory.StripCollider(shell);
-
-            GameObject cabin = PrimitiveFactory.Box(
-                "Cabin", visuals.transform,
-                new Vector3(0f, config.ColliderCenter.y + config.BodySize.y * 0.5f + config.CabinSize.y * 0.5f, -0.2f),
-                config.CabinSize, Quaternion.identity, config.BodyMaterial);
-            PrimitiveFactory.StripCollider(cabin);
-
-            // A nose marker so "which way is forward" is obvious at a glance.
-            GameObject nose = PrimitiveFactory.Box(
-                "Nose", visuals.transform,
-                new Vector3(0f, config.ColliderCenter.y, config.BodySize.z * 0.5f - 0.1f),
-                new Vector3(config.BodySize.x * 0.6f, 0.2f, 0.3f),
-                Quaternion.identity, config.WheelMaterial);
-            PrimitiveFactory.StripCollider(nose);
+            CarBodyFactory.Build(visuals.transform, config);
 
             WheelLayout[] layout = config.BuildWheelLayout();
             var wheels = new Transform[layout.Length];
@@ -72,18 +53,13 @@ namespace CarDemo.Game
 
             for (int i = 0; i < layout.Length; i++)
             {
-                // A cylinder primitive is 2 units tall and 1 unit across at scale 1, so the
-                // diameter maps to X/Z scale and half the width to Y.
-                // Orientation is deliberately left at identity: the wheel's pose is owned by
-                // CarWheelVisuals via WheelPose, and setting it here too would mean two places
-                // knowing which way a wheel faces.
-                GameObject wheel = PrimitiveFactory.Cylinder(
-                    $"Wheel_{i}", wheelRoot.transform,
-                    layout[i].LocalPosition,
-                    new Vector3(config.WheelRadius * 2f, config.WheelWidth * 0.5f, config.WheelRadius * 2f),
-                    WheelPose.CylinderToWheel,
-                    config.WheelMaterial);
-                PrimitiveFactory.StripCollider(wheel);
+                // The wheel's own pose is owned by CarWheelVisuals through WheelPose; this
+                // object is just the pivot it drives, so it starts at identity rotation.
+                var wheel = new GameObject($"Wheel_{i}");
+                wheel.transform.SetParent(wheelRoot.transform, worldPositionStays: false);
+                wheel.transform.localPosition = layout[i].LocalPosition;
+
+                CarBodyFactory.BuildWheel(wheel.transform, config, Mathf.Sign(layout[i].LocalPosition.x));
                 wheels[i] = wheel.transform;
             }
 

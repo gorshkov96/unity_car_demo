@@ -35,6 +35,32 @@ namespace CarDemo.Tests.EditMode
         }
 
         [Test]
+        public void SphereCompression_FullTravel_IsZero()
+        {
+            // The sphere fell the whole rest length before touching: suspension unloaded.
+            Assert.AreEqual(0f, SuspensionMath.CompressionFromSphere(0.45f, 0.45f), 1e-4f);
+        }
+
+        [Test]
+        public void SphereCompression_NoTravel_IsFullyCompressed()
+        {
+            Assert.AreEqual(1f, SuspensionMath.CompressionFromSphere(0f, 0.45f), 1e-4f);
+        }
+
+        [Test]
+        public void SphereCompression_HalfTravel_IsHalf()
+        {
+            Assert.AreEqual(0.5f, SuspensionMath.CompressionFromSphere(0.225f, 0.45f), 1e-4f);
+        }
+
+        [Test]
+        public void SphereCompression_IsClamped()
+        {
+            Assert.AreEqual(0f, SuspensionMath.CompressionFromSphere(10f, 0.45f), 1e-4f);
+            Assert.AreEqual(1f, SuspensionMath.CompressionFromSphere(-1f, 0.45f), 1e-4f);
+        }
+
+        [Test]
         public void Force_SpringPushesProportionallyToCompression()
         {
             float force = SuspensionMath.Force(compression: 0.5f, springStrength: 12000f, verticalVelocity: 0f, damperStrength: 2000f);

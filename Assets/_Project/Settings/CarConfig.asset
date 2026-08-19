@@ -12,35 +12,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 978ffa9a9789d4ea883181befc2f497e, type: 3}
   m_Name: CarConfig
   m_EditorClassIdentifier: CarDemo.Vehicle::CarDemo.Vehicle.CarConfig
+  _maxDepenetrationVelocity: 2
+  _solverIterations: 12
   _mass: 1200
   _centerOfMassOffset: {x: 0, y: -0.35, z: 0}
-  _colliderSize: {x: 1.8, y: 0.9, z: 4.2}
-  _colliderCenter: {x: 0, y: 0.45, z: 0}
+  _colliderSize: {x: 1.8, y: 0.8, z: 4.2}
+  _colliderCenter: {x: 0, y: 0.4, z: 0}
   _wheelbase: 2.7
   _track: 1.6
   _wheelRadius: 0.35
-  _wheelVerticalOffset: -0.285
+  _wheelVerticalOffset: -0.2
   _wheelWidth: 0.25
-  _wheelColliderScale: 0.75
-  _suspensionRestLength: 0.45
-  _springStrength: 12000
-  _damperStrength: 2000
-  _accelerationForce: 9000
+  _wheelColliderScale: 0.55
+  _suspensionRestLength: 0.3
+  _springStrength: 10000
+  _damperStrength: 2600
+  _accelerationForce: 14000
   _brakeForce: 12000
-  _maxSpeed: 30
+  _maxSpeed: 38
   _maxReverseSpeed: 8
-  _maxSteerAngle: 32
-  _steerAngleAtMaxSpeed: 10
-  _frontGrip: 0.9
+  _maxSteerAngle: 40
+  _steerAngleAtMaxSpeed: 22
+  _frontGrip: 0.95
   _rearGrip: 0.85
   _handbrakeGripFactor: 0.25
-  _maxGripAcceleration: 35
+  _maxGripAcceleration: 45
+  _tireFriction: 2.1
   _airborneSpinDecay: 0.6
   _maxWheelspin: 1.2
   _wheelspinFadeSpeed: 12
+  _maxLinearVelocity: 47
+  _airLevelTorque: 6.5
+  _airControlDelay: 0.7
+  _airAngularDamping: 2.5
   _downforce: 15
-  _rollingResistance: 12
+  _rollingResistance: 7
   _bodyMaterial: {fileID: 2100000, guid: caaa079466b1040f1bfbbcd269a39d37, type: 2}
   _wheelMaterial: {fileID: 2100000, guid: 9ed5c9db4ac394af8a736e22c9fe1083, type: 2}
+  _trimMaterial: {fileID: 2100000, guid: 0c2a8e29d99f148ed96e459529e204f0, type: 2}
+  _glassMaterial: {fileID: 2100000, guid: 422538080ada6436d83e57c299a1979a, type: 2}
+  _headlightMaterial: {fileID: 2100000, guid: b482fcc9ce10f4df7ace0a4099aa0c49, type: 2}
+  _taillightMaterial: {fileID: 2100000, guid: 7396917bbcc124dd69ea2eea73d55ab8, type: 2}
+  _rimMaterial: {fileID: 2100000, guid: 0ebfe7d19c6444f4fb87f38d11903edd, type: 2}
   _bodySize: {x: 1.7, y: 0.55, z: 4}
   _cabinSize: {x: 1.5, y: 0.45, z: 1.8}

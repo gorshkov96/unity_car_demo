@@ -34,16 +34,25 @@ namespace CarDemo.Vehicle
         }
 
         /// <summary>
+        /// Wheel rotation in the car's local space — what a wheel mesh parented to the car
+        /// should use. Preferred over <see cref="Compose"/> for rendering: local placement
+        /// follows the interpolated body instead of fighting it.
+        /// </summary>
+        public static Quaternion ComposeLocal(float steerAngle, float rollAngle)
+        {
+            return Quaternion.Euler(0f, steerAngle, 0f)
+                   * Quaternion.Euler(rollAngle, 0f, 0f)
+                   * CylinderToWheel;
+        }
+
+        /// <summary>
         /// Axle direction in the car's local space for a given steering angle.
         /// Exposed for tests: it must not depend on the rolling angle.
         /// </summary>
         public static Vector3 LocalAxle(float steerAngle, float rollAngle)
         {
-            Quaternion local = Quaternion.Euler(0f, steerAngle, 0f)
-                               * Quaternion.Euler(rollAngle, 0f, 0f)
-                               * CylinderToWheel;
             // The cylinder's axis is its local up.
-            return local * Vector3.up;
+            return ComposeLocal(steerAngle, rollAngle) * Vector3.up;
         }
 
         /// <summary>Integrates the rolling angle, wrapped to [0, 360) to keep float precision.</summary>
