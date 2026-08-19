@@ -1,0 +1,26 @@
+{
+    "name": "CarDemo.Editor",
+    "rootNamespace": "CarDemo.EditorTools",
+    "references": [
+        "CarDemo.Core",
+        "CarDemo.Vehicle",
+        "CarDemo.World",
+        "CarDemo.Game",
+        "CarDemo.Diagnostics",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "CarDemo.UI",
+        "Unity.InputSystem",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
