@@ -1,0 +1,83 @@
+# Нормализация переводов строк: по умолчанию Git сам определяет текст/бинарь
+* text=auto
+
+# ---------------------------------------------------------------
+# Unity YAML — сцены, префабы, ассеты, настройки проекта.
+# merge=unityyamlmerge использует UnityYAMLMerge из поставки редактора.
+# Настроить один раз (пути под Unity 6 на macOS):
+#   git config merge.unityyamlmerge.name "Unity SmartMerge"
+#   git config merge.unityyamlmerge.driver '"/Applications/Unity/Hub/Editor/6000.3.21f1/Unity.app/Contents/Tools/UnityYAMLMerge" merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"'
+#   git config merge.unityyamlmerge.recursive binary
+# ---------------------------------------------------------------
+*.unity        merge=unityyamlmerge eol=lf
+*.prefab       merge=unityyamlmerge eol=lf
+*.asset        merge=unityyamlmerge eol=lf
+*.mat          merge=unityyamlmerge eol=lf
+*.anim         merge=unityyamlmerge eol=lf
+*.controller   merge=unityyamlmerge eol=lf
+*.overrideController merge=unityyamlmerge eol=lf
+*.physicMaterial     merge=unityyamlmerge eol=lf
+*.physicsMaterial2D  merge=unityyamlmerge eol=lf
+*.playable     merge=unityyamlmerge eol=lf
+*.mask         merge=unityyamlmerge eol=lf
+*.brush        merge=unityyamlmerge eol=lf
+*.flare        merge=unityyamlmerge eol=lf
+*.fontsettings merge=unityyamlmerge eol=lf
+*.guiskin      merge=unityyamlmerge eol=lf
+*.giparams     merge=unityyamlmerge eol=lf
+*.meta         merge=unityyamlmerge eol=lf
+*.mixer        merge=unityyamlmerge eol=lf
+*.renderTexture merge=unityyamlmerge eol=lf
+*.shadervariants merge=unityyamlmerge eol=lf
+*.spriteatlas  merge=unityyamlmerge eol=lf
+*.terrainlayer merge=unityyamlmerge eol=lf
+*.cubemap      merge=unityyamlmerge eol=lf
+
+# Исходники
+*.cs      text diff=csharp eol=lf
+*.shader  text eol=lf
+*.hlsl    text eol=lf
+*.cginc   text eol=lf
+*.compute text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.txt     text eol=lf
+*.yml     text eol=lf
+*.asmdef  text eol=lf
+*.asmref  text eol=lf
+
+# ---------------------------------------------------------------
+# Бинарные ассеты. Пока помечены просто как binary.
+# Когда появятся крупные модели/текстуры — включить Git LFS:
+#   brew install git-lfs && git lfs install
+# и заменить строки ниже на «filter=lfs diff=lfs merge=lfs -text».
+# ---------------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.tga   binary
+*.psd   binary
+*.exr   binary
+*.hdr   binary
+*.tif   binary
+*.tiff  binary
+*.fbx   binary
+*.obj   binary
+*.blend binary
+*.glb   binary
+*.gltf  binary
+*.dae   binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.aif   binary
+*.mp4   binary
+*.mov   binary
+*.ttf   binary
+*.otf   binary
+*.dll   binary
+*.so    binary
+*.dylib binary
+*.a     binary
+*.bundle binary
+*.unitypackage binary
