@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00dd4c831ff0144f4b2b31879e3f7fae, type: 3}
+  m_Name: WorldConfig
+  m_EditorClassIdentifier: CarDemo.World::CarDemo.World.WorldConfig
+  _seed: 20260819
+  _groundHalfSize: 120
+  _wallHeight: 4
+  _roadRadius: 70
+  _roadWidth: 12
+  _roadSegments: 48
+  _buildingCount: 26
+  _buildingFootprint: {x: 6, y: 14}
+  _buildingHeight: {x: 6, y: 26}
+  _pillarCount: 40
+  _rampCount: 4
+  _spinnerCount: 8
+  _platformCount: 5
+  _bumperCount: 24
+  _bumperMass: 40
