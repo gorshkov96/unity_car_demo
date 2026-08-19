@@ -1,0 +1,18 @@
+{
+    "name": "CarDemo.UI",
+    "rootNamespace": "CarDemo.UI",
+    "references": [
+        "CarDemo.Core",
+        "CarDemo.Vehicle",
+        "CarDemo.Diagnostics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
