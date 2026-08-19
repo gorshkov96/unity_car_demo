@@ -41,7 +41,7 @@ MonoBehaviour:
   _airborneSpinDecay: 0.6
   _maxWheelspin: 1.2
   _wheelspinFadeSpeed: 12
-  _maxLinearVelocity: 47
+  _maxLinearVelocity: 66
   _airLevelTorque: 6.5
   _airControlDelay: 0.7
   _airAngularDamping: 2.5

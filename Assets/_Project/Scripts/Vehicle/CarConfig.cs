@@ -81,9 +81,11 @@ namespace CarDemo.Vehicle
         [SerializeField] private float _wheelspinFadeSpeed = 12f;
 
         [Header("Airborne behaviour")]
-        [Tooltip("Hard cap on speed, m/s. Guards against physics blow-ups when a collider "
-                 + "overlap resolves violently — without it a bad landing can fling the car.")]
-        [SerializeField] private float _maxLinearVelocity = 47f;
+        [Tooltip("Hard cap on speed, m/s. It exists to stop a violent overlap resolution from "
+                 + "flinging the car, not to limit the driving: on a long descent gravity "
+                 + "should keep adding speed. Raised once the physics step went to 100 Hz, "
+                 + "which halved how far the car travels between collision checks.")]
+        [SerializeField] private float _maxLinearVelocity = 66f;
         [Tooltip("How strongly the car levels itself towards the horizon while airborne. "
                  + "An arcade cheat, but every arcade racer has it: without it a jump ends on the roof.")]
         [SerializeField] private float _airLevelTorque = 6.5f;

@@ -44,7 +44,7 @@ namespace CarDemo.EditorTools
             grading.contrast.overrideState = true;
             grading.contrast.value = 18f;
             grading.saturation.overrideState = true;
-            grading.saturation.value = 28f;
+            grading.saturation.value = 20f;
             grading.colorFilter.overrideState = true;
             grading.colorFilter.value = new Color(1f, 0.99f, 0.96f);
 
@@ -52,9 +52,9 @@ namespace CarDemo.EditorTools
             // three-dimensional.
             ShadowsMidtonesHighlights split = profile.Add<ShadowsMidtonesHighlights>();
             split.shadows.overrideState = true;
-            split.shadows.value = new Vector4(0.86f, 0.92f, 1.15f, 0f);
+            split.shadows.value = new Vector4(0.95f, 0.98f, 1.06f, 0f);
             split.highlights.overrideState = true;
-            split.highlights.value = new Vector4(1.08f, 1.02f, 0.9f, 0f);
+            split.highlights.value = new Vector4(1.05f, 1.02f, 0.96f, 0f);
 
             // Bloom with the threshold near 1 so only genuinely bright things glow —
             // headlights and hazard markings, not the whole car.

@@ -235,10 +235,12 @@ namespace CarDemo.EditorTools
             }
 
             sky.SetFloat("_SunSize", 0.06f);
-            sky.SetFloat("_AtmosphereThickness", 0.75f);
+            // Thinner atmosphere: the default scatters a strong cyan band along the
+            // horizon, which reads as acid rather than as sky.
+            sky.SetFloat("_AtmosphereThickness", 0.45f);
             sky.SetColor("_SkyTint", Palette.SkyTint);
             sky.SetColor("_GroundColor", Palette.SkyGround);
-            sky.SetFloat("_Exposure", 1.15f);
+            sky.SetFloat("_Exposure", 1.05f);
             EditorUtility.SetDirty(sky);
 
             RenderSettings.skybox = sky;

@@ -11,51 +11,52 @@ namespace CarDemo.World
     /// separated by a few percent of brightness, which is why everything looked washed out
     /// however the lighting was set.
     ///
-    /// The scheme here is warm ground against a cool sky, with saturated accents reserved for
-    /// the things the player must react to — ramps and hazards.
+    /// The scheme sticks to colours things actually are — asphalt grey, stone, road-sign
+    /// yellow and red — and gets its punch from contrast and saturation rather than from
+    /// inventing hues. Violet roads and pink ramps read as a debug palette, not as a world.
     /// </summary>
     public static class Palette
     {
         // --- Descent: the road surface and its surroundings -------------------------
         /// <summary>Road. Deep and slightly violet, so warm scenery pops against it.</summary>
-        public static readonly Color Road = Hex("515A7E");
+        public static readonly Color Road = Hex("55595F");
 
         /// <summary>Lane markings. Near-white with a warm cast, never pure white.</summary>
         public static readonly Color Marking = Hex("F5EFE0");
 
         /// <summary>Barrier walls: darker than the road so the track edge is unmistakable.</summary>
-        public static readonly Color Wall = Hex("2B2F4E");
+        public static readonly Color Wall = Hex("3D4148");
 
         /// <summary>Rock faces along the track. Warm sand against the cool road.</summary>
-        public static readonly Color Rock = Hex("D9B98A");
+        public static readonly Color Rock = Hex("C2B49A");
 
         /// <summary>Distant peaks: cool and desaturated, so they read as far away.</summary>
-        public static readonly Color Peak = Hex("A8BBD9");
+        public static readonly Color Peak = Hex("9FB0C4");
 
         /// <summary>Snow-capped peaks.</summary>
         public static readonly Color PeakSnow = Hex("E8EEF7");
 
         // --- Things that matter to the driver ---------------------------------------
         /// <summary>Ramps. The most saturated colour in the scene, seen from furthest away.</summary>
-        public static readonly Color Ramp = Hex("FFB020");
+        public static readonly Color Ramp = Hex("F5A31A");
 
         /// <summary>Banked ramps and hazard markings.</summary>
-        public static readonly Color Hazard = Hex("FF4757");
+        public static readonly Color Hazard = Hex("D62828");
 
         /// <summary>Moving obstacles: cold turquoise, the complement of the warm ramps.</summary>
-        public static readonly Color Moving = Hex("2EC4B6");
+        public static readonly Color Moving = Hex("2A7FD4");
 
         /// <summary>Static blocks: mid-value neutral, deliberately quieter than hazards.</summary>
-        public static readonly Color Obstacle = Hex("9A8FB5");
+        public static readonly Color Obstacle = Hex("AFB3B8");
 
         /// <summary>Loose crates.</summary>
-        public static readonly Color Crate = Hex("E07A3F");
+        public static readonly Color Crate = Hex("C87F35");
 
         /// <summary>Structural accents: posts, collars, buttresses.</summary>
-        public static readonly Color Accent = Hex("5B5288");
+        public static readonly Color Accent = Hex("6B6259");
 
         // --- Car ---------------------------------------------------------------------
-        public static readonly Color CarBody = Hex("E23E3E");
+        public static readonly Color CarBody = Hex("D93B3B");
         public static readonly Color CarTrim = Hex("23212E");
         public static readonly Color CarGlass = Hex("15233D");
         public static readonly Color CarRim = Hex("D8DCE6");
@@ -64,21 +65,24 @@ namespace CarDemo.World
         public static readonly Color Taillight = Hex("FF3B30");
 
         // --- Ring map -----------------------------------------------------------------
-        public static readonly Color Ground = Hex("6E8A5A");
-        public static readonly Color RingRoad = Hex("3A3F52");
+        public static readonly Color Ground = Hex("74965C");
+        public static readonly Color RingRoad = Hex("4B4F55");
         public static readonly Color Building = Hex("D6C6A8");
 
         // --- Sky and light ---------------------------------------------------------------
-        public static readonly Color SkyTint = Hex("4FA8E8");
-        public static readonly Color SkyGround = Hex("2A2E48");
+        // The sky's lower half is what fills the screen below the horizon. Leaving it dark
+        // draws a heavy band across the frame and hides everything standing against it, so it
+        // is kept close to the fog colour: the distance then fades out instead of ending.
+        public static readonly Color SkyTint = Hex("7FAAD4");
+        public static readonly Color SkyGround = Hex("A9B6C9");
         public static readonly Color SunLight = Hex("FFEFD0");
 
         /// <summary>Ambient from above: cool, so shadows read blue against warm sunlight.</summary>
-        public static readonly Color AmbientSky = Hex("7FB6E8");
+        public static readonly Color AmbientSky = Hex("A8C6E0");
 
-        public static readonly Color AmbientEquator = Hex("8E8FB4");
-        public static readonly Color AmbientGround = Hex("55496B");
-        public static readonly Color Fog = Hex("9FB4CE");
+        public static readonly Color AmbientEquator = Hex("8D9099");
+        public static readonly Color AmbientGround = Hex("4E4C48");
+        public static readonly Color Fog = Hex("AEBCCE");
 
         /// <summary>Parses "RRGGBB" so the palette reads the way a designer writes it.</summary>
         public static Color Hex(string hex)
