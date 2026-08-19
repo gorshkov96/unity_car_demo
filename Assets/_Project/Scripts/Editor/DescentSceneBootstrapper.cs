@@ -59,6 +59,7 @@ namespace CarDemo.EditorTools
 
             DescentMaterials materials = LoadMaterials();
             CreateLighting();
+            PostProcessingBootstrapper.Create();
 
             var streamerRoot = new GameObject("Descent");
             DescentStreamer streamer = streamerRoot.AddComponent<DescentStreamer>();
@@ -116,22 +117,20 @@ namespace CarDemo.EditorTools
 
         private static DescentMaterials LoadMaterials()
         {
-            // Low-poly palette: flat, saturated, low smoothness. The docs warn against mixing
-            // stylistic sources, so nothing here is metallic or glossy — the read comes from
-            // faceted geometry and colour contrast, not from material detail.
+            // Colours come from Palette, which keeps the whole project on one scheme.
+            // Smoothness stays low everywhere: in a textureless style, gloss reads as noise.
             return new DescentMaterials(
-                LoadOrCreateMaterial("DescentSurface", Hex("3B4A63"), 0.08f),
-                LoadOrCreateMaterial("DescentStripe", Hex("F2F5FA"), 0.15f),
-                LoadOrCreateMaterial("DescentWall", Hex("2A3348"), 0.05f),
-                LoadOrCreateMaterial("DescentJump", Hex("F5A623"), 0.12f),
-                LoadOrCreateMaterial("DescentObstacle", Hex("7A88A6"), 0.1f),
-                LoadOrCreateMaterial("DescentAccent", Hex("2E3A55"), 0.1f),
-                LoadOrCreateMaterial("DescentMoving", Hex("35C4D6"), 0.2f),
-                LoadOrCreateMaterial("DescentCrate", Hex("C97B3C"), 0.08f),
-                LoadOrCreateMaterial("DescentHazard", Hex("FF4D4D"), 0.15f));
+                LoadOrCreateMaterial("DescentSurface", Palette.Road, 0.06f),
+                LoadOrCreateMaterial("DescentStripe", Palette.Marking, 0.1f),
+                LoadOrCreateMaterial("DescentWall", Palette.Wall, 0.04f),
+                LoadOrCreateMaterial("DescentJump", Palette.Ramp, 0.14f),
+                LoadOrCreateMaterial("DescentObstacle", Palette.Rock, 0.06f),
+                LoadOrCreateMaterial("DescentAccent", Palette.Accent, 0.08f),
+                LoadOrCreateMaterial("DescentMoving", Palette.Moving, 0.22f),
+                LoadOrCreateMaterial("DescentCrate", Palette.Crate, 0.08f),
+                LoadOrCreateMaterial("DescentHazard", Palette.Hazard, 0.16f));
         }
 
-        /// <summary>Creates the config from code defaults, replacing any stale asset.</summary>
         private static T CreateConfig<T>(string path) where T : ScriptableObject
         {
             var asset = ScriptableObject.CreateInstance<T>();
@@ -185,8 +184,8 @@ namespace CarDemo.EditorTools
             sky.SetFloat("_SunSize", 0.06f);
             sky.SetFloat("_SunSizeConvergence", 3f);
             sky.SetFloat("_AtmosphereThickness", 0.75f);
-            sky.SetColor("_SkyTint", Hex("6FA8DC"));
-            sky.SetColor("_GroundColor", Hex("2A3348"));
+            sky.SetColor("_SkyTint", Palette.SkyTint);
+            sky.SetColor("_GroundColor", Palette.SkyGround);
             sky.SetFloat("_Exposure", 1.15f);
             EditorUtility.SetDirty(sky);
 
@@ -200,24 +199,22 @@ namespace CarDemo.EditorTools
             var sun = new GameObject("Directional Light");
             Light light = sun.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = Hex("FFF0D6");
-            light.intensity = 1.7f;
+            light.color = Palette.SunLight;
+            light.intensity = 2.1f;
             light.shadows = LightShadows.Soft;
-            // Low sun: long shadows give flat-shaded geometry its shape.
-            sun.transform.rotation = Quaternion.Euler(34f, -35f, 0f);
+            // Low sun: long shadows are what give flat-shaded geometry its form.
+            sun.transform.rotation = Quaternion.Euler(48f, -32f, 0f);
 
-            // Gradient ambient is the cheapest strong stylisation lever the docs name, and
-            // three flat colours suit a low-poly look better than a skybox probe.
+            // Warm light against cool ambient. That temperature split does more for depth
+            // than any amount of extra brightness.
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = Hex("9CC3E8");
-            RenderSettings.ambientEquatorColor = Hex("6E7E99");
-            RenderSettings.ambientGroundColor = Hex("2E3446");
-            // Fog is thin on purpose. At 0.0045 an obstacle 200 m out is already invisible,
-            // and at 150 km/h that is four seconds of warning — the player runs into things
-            // that were never shown to them. It now reads as depth haze, not as a wall.
+            RenderSettings.ambientSkyColor = Palette.AmbientSky;
+            RenderSettings.ambientEquatorColor = Palette.AmbientEquator;
+            RenderSettings.ambientGroundColor = Palette.AmbientGround;
+
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = Hex("8FA6C4");
+            RenderSettings.fogColor = Palette.Fog;
             RenderSettings.fogDensity = 0.0016f;
         }
 

@@ -31,6 +31,8 @@ namespace CarDemo.World
         private float _nextCheck;
         private float _stuckTime;
         private float _lastProgressZ = float.NegativeInfinity;
+        private float _lastRescueZ = float.NegativeInfinity;
+        private int _repeatedRescues;
 
         public int RescueCount { get; private set; }
 
@@ -58,6 +60,7 @@ namespace CarDemo.World
             _car.position = target;
             _car.rotation = Quaternion.LookRotation(_streamer.SlopeRoot.forward, Vector3.up);
             _car.transform.SetPositionAndRotation(target, _car.rotation);
+            _lastRescueZ = safeZ;
         }
 
         private void Update()
@@ -86,10 +89,17 @@ namespace CarDemo.World
                 if (_stuckTime >= _stuckTimeout)
                 {
                     _stuckTime = 0f;
-                    _lastProgressZ = local.z + _freeAheadDistance;
-                    FreeAt(local, config, local.z + _freeAheadDistance);
+                    _repeatedRescues++;
+
+                    // Each repeat moves it further and closer to the middle: being freed back
+                    // into the same pile-up just repeats the same wedge.
+                    float ahead = _freeAheadDistance * Mathf.Min(4, _repeatedRescues);
+                    float centred = Mathf.Lerp(local.x, 0f, 0.5f * Mathf.Min(1f, _repeatedRescues * 0.4f));
+
+                    _lastProgressZ = local.z + ahead;
+                    FreeAt(new Vector3(centred, local.y, local.z), config, local.z + ahead);
                     UnstickCount++;
-                    Debug.Log($"[GUARD] freed a wedged car at z={local.z:0}");
+                    Debug.Log($"[GUARD] freed a wedged car at z={local.z:0} (attempt {_repeatedRescues})");
                     return;
                 }
             }
@@ -97,6 +107,9 @@ namespace CarDemo.World
             {
                 _stuckTime = 0f;
                 _lastProgressZ = local.z;
+
+                // Moving well again means the last rescue worked; forget the streak.
+                if (local.z - _lastRescueZ > 60f) _repeatedRescues = 0;
             }
 
             bool fellThrough = local.y < -_fallThreshold;

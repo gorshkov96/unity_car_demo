@@ -10,7 +10,8 @@
         "Unity.RenderPipelines.Universal.Runtime",
         "CarDemo.UI",
         "Unity.InputSystem",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"

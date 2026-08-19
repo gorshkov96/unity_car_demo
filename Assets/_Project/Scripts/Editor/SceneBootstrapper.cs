@@ -50,20 +50,23 @@ namespace CarDemo.EditorTools
             CarConfig carConfig = CreateConfig<CarConfig>(CarConfigPath);
             WorldConfig worldConfig = CreateConfig<WorldConfig>(WorldConfigPath);
 
-            Material ground = LoadOrCreateMaterial("Ground", new Color(0.24f, 0.26f, 0.28f), smoothness: 0.15f);
-            Material road = LoadOrCreateMaterial("Road", new Color(0.13f, 0.14f, 0.16f), smoothness: 0.35f);
-            Material building = LoadOrCreateMaterial("Building", new Color(0.62f, 0.63f, 0.66f), smoothness: 0.2f);
-            Material accent = LoadOrCreateMaterial("Accent", new Color(0.85f, 0.42f, 0.16f), smoothness: 0.3f);
-            Material moving = LoadOrCreateMaterial("Moving", new Color(0.25f, 0.65f, 0.85f), smoothness: 0.5f);
-            Material carBody = LoadOrCreateMaterial("CarBody", new Color(0.72f, 0.11f, 0.14f), smoothness: 0.85f);
-            Material wheel = LoadOrCreateMaterial("Wheel", new Color(0.07f, 0.07f, 0.08f), smoothness: 0.2f);
-            Material trim = LoadOrCreateMaterial("Trim", new Color(0.14f, 0.15f, 0.17f), smoothness: 0.55f);
-            Material glass = LoadOrCreateMaterial("Glass", new Color(0.07f, 0.11f, 0.16f), smoothness: 0.95f);
-            Material rim = LoadOrCreateMaterial("Rim", new Color(0.68f, 0.7f, 0.74f), smoothness: 0.8f, metallic: 0.9f);
-            Material headlight = LoadOrCreateMaterial("Headlight", new Color(0.92f, 0.94f, 0.85f), smoothness: 0.9f,
-                emission: new Color(1.6f, 1.55f, 1.25f));
-            Material taillight = LoadOrCreateMaterial("Taillight", new Color(0.6f, 0.05f, 0.05f), smoothness: 0.9f,
-                emission: new Color(1.4f, 0.12f, 0.1f));
+            Material ground = LoadOrCreateMaterial("Ground", Palette.Ground, smoothness: 0.05f);
+            Material road = LoadOrCreateMaterial("Road", Palette.RingRoad, smoothness: 0.1f);
+            Material building = LoadOrCreateMaterial("Building", Palette.Building, smoothness: 0.06f);
+            Material accent = LoadOrCreateMaterial("Accent", Palette.Ramp, smoothness: 0.14f);
+            Material moving = LoadOrCreateMaterial("Moving", Palette.Moving, smoothness: 0.22f);
+            Material carBody = LoadOrCreateMaterial("CarBody", Palette.CarBody, smoothness: 0.55f);
+            Material wheel = LoadOrCreateMaterial("Wheel", Palette.Tyre, smoothness: 0.08f);
+            Material trim = LoadOrCreateMaterial("Trim", Palette.CarTrim, smoothness: 0.3f);
+            Material glass = LoadOrCreateMaterial("Glass", Palette.CarGlass, smoothness: 0.85f);
+            Material rim = LoadOrCreateMaterial("Rim", Palette.CarRim, smoothness: 0.5f, metallic: 0.6f);
+
+            // Lights are emissive well above 1 so bloom, whose threshold sits at 1, sees them
+            // and nothing else does.
+            Material headlight = LoadOrCreateMaterial("Headlight", Palette.Headlight, smoothness: 0.8f,
+                emission: Palette.Emissive(Palette.Headlight, 3.2f));
+            Material taillight = LoadOrCreateMaterial("Taillight", Palette.Taillight, smoothness: 0.8f,
+                emission: Palette.Emissive(Palette.Taillight, 2.6f));
 
             AssignMaterials(carConfig, carBody, wheel, trim, glass, headlight, taillight, rim);
 
@@ -74,6 +77,7 @@ namespace CarDemo.EditorTools
             }
 
             CreateLighting();
+            PostProcessingBootstrapper.Create();
             GameObject worldRoot = CreateWorld(worldConfig, ground, road, building, accent, moving);
             CarController car = CreateCar(carConfig, worldRoot.GetComponent<WorldBuilder>());
             CreateCamera(car);
@@ -232,8 +236,8 @@ namespace CarDemo.EditorTools
 
             sky.SetFloat("_SunSize", 0.06f);
             sky.SetFloat("_AtmosphereThickness", 0.75f);
-            sky.SetColor("_SkyTint", new Color(0.44f, 0.66f, 0.86f));
-            sky.SetColor("_GroundColor", new Color(0.16f, 0.2f, 0.28f));
+            sky.SetColor("_SkyTint", Palette.SkyTint);
+            sky.SetColor("_GroundColor", Palette.SkyGround);
             sky.SetFloat("_Exposure", 1.15f);
             EditorUtility.SetDirty(sky);
 
@@ -247,18 +251,19 @@ namespace CarDemo.EditorTools
             var sun = new GameObject("Directional Light");
             Light light = sun.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(1f, 0.96f, 0.9f);
-            light.intensity = 1.4f;
+            light.color = Palette.SunLight;
+            light.intensity = 2.1f;
             light.shadows = LightShadows.Soft;
-            sun.transform.rotation = Quaternion.Euler(48f, 35f, 0f);
+            sun.transform.rotation = Quaternion.Euler(48f, -32f, 0f);
 
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.45f, 0.52f, 0.62f);
-            RenderSettings.ambientEquatorColor = new Color(0.3f, 0.32f, 0.35f);
-            RenderSettings.ambientGroundColor = new Color(0.15f, 0.15f, 0.16f);
+            RenderSettings.ambientSkyColor = Palette.AmbientSky;
+            RenderSettings.ambientEquatorColor = Palette.AmbientEquator;
+            RenderSettings.ambientGroundColor = Palette.AmbientGround;
+
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.55f, 0.6f, 0.68f);
+            RenderSettings.fogColor = Palette.Fog;
             RenderSettings.fogDensity = 0.0035f;
         }
 
