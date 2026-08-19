@@ -22,7 +22,7 @@
 
 ```bash
 git config merge.unityyamlmerge.name "Unity SmartMerge"
-git config merge.unityyamlmerge.driver '"/Applications/Unity/Hub/Editor/6000.3.21f1/Unity.app/Contents/Tools/UnityYAMLMerge" merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"'
+git config merge.unityyamlmerge.driver '"/Applications/Unity/Hub/Editor/6000.3.21f1/Unity.app/Contents/Helpers/UnityYAMLMerge" merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"'
 git config merge.unityyamlmerge.recursive binary
 ```
 
